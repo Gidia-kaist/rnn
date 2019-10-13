@@ -86,8 +86,8 @@ print(torch.cuda.device_count())
 n_sqrt = int(np.ceil(np.sqrt(n_neurons)))
 start_intensity = intensity
 network = Network(dt=1.0)
-network.to(device)
-network.to("cuda")
+#network.to(device)
+#network.to("cuda")
 # state_vars: Iterable of strings indicating names of state variables to record.
 for l in network.layers:
     m = Monitor(network.layers[l], state_vars=['s'], time=time)

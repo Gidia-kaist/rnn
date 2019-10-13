@@ -195,7 +195,7 @@ class Network(torch.nn.Module):
         # language=rst
         """
         Returns a cloned network object.
-        
+
         :return: A copy of this network.
         """
         virtual_file = tempfile.SpooledTemporaryFile()
@@ -304,6 +304,7 @@ class Network(torch.nn.Module):
         if self.reward_fn is not None:
             kwargs["reward"] = self.reward_fn.compute(**kwargs)
 
+        import time as tm
         # Dynamic setting of batch size.
         if inpts != {}:
             for key in inpts:
@@ -333,7 +334,6 @@ class Network(torch.nn.Module):
 
         # Effective number of timesteps.
         timesteps = int(time / self.dt)
-
         # Get input to all layers (synchronous mode).
         if not one_step:
             inpts.update(self._get_inputs())
@@ -349,9 +349,10 @@ class Network(torch.nn.Module):
                     if one_step:
                         # Get input to this layer (one-step mode).
                         inpts.update(self._get_inputs(layers=[l]))
+                    end=tm.time()
 
                     self.layers[l].forward(x=inpts[l])
-
+                    print('222: ', tm.time() - end)
                 # Clamp neurons to spike.
                 clamp = clamps.get(l, None)
                 if clamp is not None:
@@ -376,18 +377,20 @@ class Network(torch.nn.Module):
                     else:
                         self.layers[l].v += inject_v[t]
 
-            # Run synapse updates.
+           # Run synapse updates.
             for c in self.connections:
                 self.connections[c].update(
                     mask=masks.get(c, None), learning=self.learning
                 )
-
             # Get input to all layers.
             inpts.update(self._get_inputs())
 
             # Record state variables of interest.
             for m in self.monitors:
                 self.monitors[m].record()
+
+        #print("2nd: ", tm.time() - end)
+        #end = tm.time()
 
         # Re-normalize connections.
         for c in self.connections:

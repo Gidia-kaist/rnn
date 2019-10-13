@@ -4,7 +4,7 @@ from operator import mul
 from typing import Iterable, Optional, Union
 
 import torch
-
+from numba import cuda
 
 class Nodes(torch.nn.Module):
     # language=rst
@@ -1004,6 +1004,7 @@ class DiehlAndCookNodes(Nodes):
         self.lbound = lbound  # Lower bound of voltage.
         self.one_spike = one_spike  # One spike per timestep.
 
+    @cuda.jit('(float32[:,:])')
     def forward(self, x: torch.Tensor) -> None:
         # language=rst
         """
@@ -1047,7 +1048,6 @@ class DiehlAndCookNodes(Nodes):
         # Voltage clipping to lower bound.
         if self.lbound is not None:
             self.v.masked_fill_(self.v < self.lbound, self.lbound)
-
         super().forward(x)
 
     def reset_(self) -> None:

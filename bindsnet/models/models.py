@@ -208,17 +208,8 @@ class DiehlAndCook2015(Network):
         w += torch.diag(torch.ones(self.n_neurons)*self.inh)
         #print(w)
         """
-        w = torch.rand(n_neurons, n_neurons)
-        for i in range(0, n_neurons):
-            for j in range(0, n_neurons):
-                if w[i,j] > 0.3:
-                    w[i,j] = 1
-                else:
-                    w[i,j] = 0
-
-        for k in range(0, n_neurons):
-            w[k,k] = 0
-
+        w = torch.ones(n_neurons, n_neurons)
+        w -= torch.diag(torch.ones(n_neurons))
 
         #print(w)
 
