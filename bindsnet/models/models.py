@@ -179,48 +179,11 @@ class DiehlAndCook2015(Network):
             source=exc_layer, target=inh_layer, w=w, wmin=0, wmax=self.exc
         )
 
-#        w = -self.inh * (
-#            torch.ones(self.n_neurons, self.n_neurons)
-#            - torch.diag(torch.ones(self.n_neurons))
-#        )
+        w = -self.inh * (
+            torch.ones(self.n_neurons, self.n_neurons)
+            - torch.diag(torch.ones(self.n_neurons))
+        )
 
-        #print(self.emax)
-        #print(self.emin)
-
-        """
-        m_size = n_neurons ** 0.5
-        for i in range(0,n_neurons):
-            for j in range(0,n_neurons):
-
-                dsqre = (divmod(i,m_size)[0] - divmod(j,m_size)[0])**2 + (divmod(i,m_size)[1] - divmod(j,m_size)[1])**2
-                dmax = (divmod(1599,m_size)[0] - divmod(0,m_size)[0])**2 + (divmod(1599,m_size)[1] - divmod(0,m_size)[1])**2
-                #print(dmax)
-                dst = (dsqre**0.5)/(dmax**0.5)
-                #print(dst)
-                #dst = 1
-                str = 1*(self.emax-self.emin)*((1-dst)**0.5)+self.emin
-                if isinstance(str, complex):
-                    str = str.real
-                w[i,j] = round(str,3)
-                #print(w[i,j])
-        #print(w)
-        w *= -self.inh
-        w += torch.diag(torch.ones(self.n_neurons)*self.inh)
-        #print(w)
-        """
-        w = torch.rand(n_neurons, n_neurons)
-        for i in range(0, n_neurons):
-            for j in range(0, n_neurons):
-                if w[i,j] > 0.3:
-                    w[i,j] = 1
-                else:
-                    w[i,j] = 0
-
-        for k in range(0, n_neurons):
-            w[k,k] = 0
-
-
-        #print(w)
 
         inh_exc_conn = Connection(
             source=inh_layer, target=exc_layer, w=w, wmin=-self.inh, wmax=0

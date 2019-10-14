@@ -9,6 +9,13 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="gidia@143.248.115.182:22 (1)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/gidia/anaconda3/envs/myspace/rnn" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
     </serverData>
   </component>
 </project>
