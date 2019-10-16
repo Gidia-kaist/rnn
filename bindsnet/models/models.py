@@ -2,9 +2,11 @@ from typing import Optional, Union, Tuple, List, Sequence, Iterable
 
 import numpy as np
 import torch
+import pickle
+
 from scipy.spatial.distance import euclidean
 from torch.nn.modules.utils import _pair
-from numba import jit
+
 from ..learning import PostPre
 from ..network import Network
 from ..network.nodes import Input, RealInput, LIFNodes, DiehlAndCookNodes
@@ -31,7 +33,6 @@ class TwoLayerNetwork(Network):
         # language=rst
         """
         Constructor for class ``TwoLayerNetwork``.
-
         :param n_inpt: Number of input neurons. Matches the 1D size of the input data.
         :param n_neurons: Number of neurons in the ``LIFNodes`` population.
         :param dt: Simulation time step.
@@ -94,7 +95,7 @@ class DiehlAndCook2015(Network):
         exc: float = 22.5,
         inh: float = 17.5,
         dt: float = 1.0,
-        nu: Optional[Union[float, Sequence[float]]] = (1e-3, 1e-1),
+        nu: Optional[Union[float, Sequence[float]]] = (1e-4, 1e-2),
         reduction: Optional[callable] = None,
         wmin: float = 0.0,
         wmax: float = 1.0,
@@ -102,13 +103,10 @@ class DiehlAndCook2015(Network):
         theta_plus: float = 0.05,
         tc_theta_decay: float = 1e7,
         inpt_shape: Optional[Iterable[int]] = None,
-        emax: float = 1,
-        emin: float =0.5,
     ) -> None:
         # language=rst
         """
         Constructor for class ``DiehlAndCook2015``.
-
         :param n_inpt: Number of input neurons. Matches the 1D size of the input data.
         :param n_neurons: Number of excitatory, inhibitory neurons.
         :param exc: Strength of synapse weights from excitatory to inhibitory layer.
@@ -131,8 +129,6 @@ class DiehlAndCook2015(Network):
         self.exc = exc
         self.inh = inh
         self.dt = dt
-        self.emax = emax
-        self.emin = emin
 
         # Layers
         input_layer = Input(
@@ -163,6 +159,16 @@ class DiehlAndCook2015(Network):
 
         # Connections
         w = 0.3 * torch.rand(self.n_inpt, self.n_neurons)
+
+        # Read the previous weight map and save as 'seed_weight_bf'
+        with open('/home/gidia/anaconda3/envs/myspace/examples/mnist/log/weight_seed.p', 'rb')as file:
+            seed_weight_bf = pickle.load(file)
+
+        # Copy the selected neuron with 784 mnist dataset and paste to current weight map
+        w[0:, 0:320] = seed_weight_bf[0:, 0:320]
+
+        print(w)
+
         input_exc_conn = Connection(
             source=input_layer,
             target=exc_layer,
@@ -178,13 +184,10 @@ class DiehlAndCook2015(Network):
         exc_inh_conn = Connection(
             source=exc_layer, target=inh_layer, w=w, wmin=0, wmax=self.exc
         )
-
         w = -self.inh * (
             torch.ones(self.n_neurons, self.n_neurons)
             - torch.diag(torch.ones(self.n_neurons))
         )
-
-
         inh_exc_conn = Connection(
             source=inh_layer, target=exc_layer, w=w, wmin=-self.inh, wmax=0
         )
@@ -224,7 +227,6 @@ class DiehlAndCook2015v2(Network):
         # language=rst
         """
         Constructor for class ``DiehlAndCook2015v2``.
-
         :param n_inpt: Number of input neurons. Matches the 1D size of the input data.
         :param n_neurons: Number of excitatory, inhibitory neurons.
         :param inh: Strength of synapse weights from inhibitory to excitatory layer.
@@ -318,7 +320,6 @@ class IncreasingInhibitionNetwork(Network):
         # language=rst
         """
         Constructor for class ``IncreasingInhibitionNetwork``.
-
         :param n_inpt: Number of input neurons. Matches the 1D size of the input data.
         :param n_neurons: Number of excitatory, inhibitory neurons.
         :param inh: Strength of synapse weights from inhibitory to excitatory layer.
@@ -420,7 +421,6 @@ class LocallyConnectedNetwork(Network):
         """
         Constructor for class ``LocallyConnectedNetwork``. Uses ``DiehlAndCookNodes`` to avoid multiple spikes per
         timestep in the output layer population.
-
         :param n_inpt: Number of input neurons. Matches the 1D size of the input data.
         :param input_shape: Two-dimensional shape of input population.
         :param kernel_size: Size of input windows. Integer or two-tuple of integers.

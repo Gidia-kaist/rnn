@@ -27,7 +27,6 @@ class Nodes(torch.nn.Module):
         # language=rst
         """
         Abstract base class constructor.
-
         :param n: The number of neurons in the layer.
         :param shape: The dimensionality of the layer.
         :param traces: Whether to record decaying spike traces.
@@ -89,7 +88,6 @@ class Nodes(torch.nn.Module):
         # language=rst
         """
         Abstract base class method for a single simulation step.
-
         :param x: Inputs to the layer.
         """
         if self.traces:
@@ -133,7 +131,6 @@ class Nodes(torch.nn.Module):
         # language=rst
         """
         Sets mini-batch size. Called when layer is added to a network.
-
         :param batch_size: Mini-batch size.
         """
         self.batch_size = batch_size
@@ -151,7 +148,6 @@ class Nodes(torch.nn.Module):
         # language=rst
         """
         Sets the layer in training mode.
-
         :param bool mode: Turn training on or off
         :return: self as specified in `torch.nn.Module`
         """
@@ -186,7 +182,6 @@ class Input(Nodes, AbstractInput):
         # language=rst
         """
         Instantiates a layer of input neurons.
-
         :param n: The number of neurons in the layer.
         :param shape: The dimensionality of the layer.
         :param traces: Whether to record decaying spike traces.
@@ -209,7 +204,6 @@ class Input(Nodes, AbstractInput):
         # language=rst
         """
         On each simulation step, set the spikes of the population equal to the inputs.
-
         :param x: Inputs to the layer.
         """
         # Set spike occurrences to input values.
@@ -245,7 +239,6 @@ class RealInput(Nodes, AbstractInput):
         # language=rst
         """
         Instantiates a layer of input neurons.
-
         :param n: The number of neurons in the layer.
         :param shape: The dimensionality of the layer.
         :param traces: Whether to record decaying spike traces.
@@ -268,7 +261,6 @@ class RealInput(Nodes, AbstractInput):
         # language=rst
         """
         On each simulation step, set the outputs of the population equal to the inputs.
-
         :param x: Inputs to the layer.
         """
         # Set spike occurrences to input values.
@@ -306,7 +298,6 @@ class McCullochPitts(Nodes):
         # language=rst
         """
         Instantiates a McCulloch-Pitts layer of neurons.
-
         :param n: The number of neurons in the layer.
         :param shape: The dimensionality of the layer.
         :param traces: Whether to record spike traces.
@@ -335,7 +326,6 @@ class McCullochPitts(Nodes):
         # language=rst
         """
         Runs a single simulation step.
-
         :param x: Inputs to the layer.
         """
         self.v = x  # Voltages are equal to the inputs.
@@ -354,7 +344,6 @@ class McCullochPitts(Nodes):
         # language=rst
         """
         Sets mini-batch size. Called when layer is added to a network.
-
         :param batch_size: Mini-batch size.
         """
         super().set_batch_size(batch_size=batch_size)
@@ -385,7 +374,6 @@ class IFNodes(Nodes):
         # language=rst
         """
         Instantiates a layer of IF neurons.
-
         :param n: The number of neurons in the layer.
         :param shape: The dimensionality of the layer.
         :param traces: Whether to record spike traces.
@@ -428,7 +416,6 @@ class IFNodes(Nodes):
         # language=rst
         """
         Runs a single simulation step.
-
         :param x: Inputs to the layer.
         """
         # Integrate input voltages.
@@ -465,7 +452,6 @@ class IFNodes(Nodes):
         # language=rst
         """
         Sets mini-batch size. Called when layer is added to a network.
-
         :param batch_size: Mini-batch size.
         """
         super().set_batch_size(batch_size=batch_size)
@@ -500,7 +486,6 @@ class LIFNodes(Nodes):
         # language=rst
         """
         Instantiates a layer of LIF neurons.
-
         :param n: The number of neurons in the layer.
         :param shape: The dimensionality of the layer.
         :param traces: Whether to record spike traces.
@@ -554,7 +539,6 @@ class LIFNodes(Nodes):
         # language=rst
         """
         Runs a single simulation step.
-
         :param x: Inputs to the layer.
         """
         # Decay voltages.
@@ -604,7 +588,6 @@ class LIFNodes(Nodes):
         # language=rst
         """
         Sets mini-batch size. Called when layer is added to a network.
-
         :param batch_size: Mini-batch size.
         """
         super().set_batch_size(batch_size=batch_size)
@@ -697,7 +680,6 @@ class CurrentLIFNodes(Nodes):
         # language=rst
         """
         Runs a single simulation step.
-
         :param x: Inputs to the layer.
         """
         # Decay voltages and current.
@@ -753,7 +735,6 @@ class CurrentLIFNodes(Nodes):
         # language=rst
         """
         Sets mini-batch size. Called when layer is added to a network.
-
         :param batch_size: Mini-batch size.
         """
         super().set_batch_size(batch_size=batch_size)
@@ -791,7 +772,6 @@ class AdaptiveLIFNodes(Nodes):
         # language=rst
         """
         Instantiates a layer of LIF neurons with adaptive firing thresholds.
-
         :param n: The number of neurons in the layer.
         :param shape: The dimensionality of the layer.
         :param traces: Whether to record spike traces.
@@ -851,7 +831,6 @@ class AdaptiveLIFNodes(Nodes):
         # language=rst
         """
         Runs a single simulation step.
-
         :param x: Inputs to the layer.
         """
         # Decay voltages and adaptive thresholds.
@@ -908,7 +887,6 @@ class AdaptiveLIFNodes(Nodes):
         # language=rst
         """
         Sets mini-batch size. Called when layer is added to a network.
-
         :param batch_size: Mini-batch size.
         """
         super().set_batch_size(batch_size=batch_size)
@@ -946,7 +924,6 @@ class DiehlAndCookNodes(Nodes):
         # language=rst
         """
         Instantiates a layer of Diehl & Cook 2015 neurons.
-
         :param n: The number of neurons in the layer.
         :param shape: The dimensionality of the layer.
         :param traces: Whether to record spike traces.
@@ -1008,7 +985,6 @@ class DiehlAndCookNodes(Nodes):
         # language=rst
         """
         Runs a single simulation step.
-
         :param x: Inputs to the layer.
         """
         # Decay voltages and adaptive thresholds.
@@ -1076,7 +1052,6 @@ class DiehlAndCookNodes(Nodes):
         # language=rst
         """
         Sets mini-batch size. Called when layer is added to a network.
-
         :param batch_size: Mini-batch size.
         """
         super().set_batch_size(batch_size=batch_size)
@@ -1108,7 +1083,6 @@ class IzhikevichNodes(Nodes):
         # language=rst
         """
         Instantiates a layer of Izhikevich neurons.
-
         :param n: The number of neurons in the layer.
         :param shape: The dimensionality of the layer.
         :param traces: Whether to record spike traces.
@@ -1206,7 +1180,6 @@ class IzhikevichNodes(Nodes):
         # language=rst
         """
         Runs a single simulation step.
-
         :param x: Inputs to the layer.
         """
         # Check for spiking neurons.
@@ -1247,7 +1220,6 @@ class IzhikevichNodes(Nodes):
         # language=rst
         """
         Sets mini-batch size. Called when layer is added to a network.
-
         :param batch_size: Mini-batch size.
         """
         super().set_batch_size(batch_size=batch_size)
@@ -1285,7 +1257,6 @@ class SRM0Nodes(Nodes):
         # language=rst
         """
         Instantiates a layer of SRM0 neurons.
-
         :param n: The number of neurons in the layer.
         :param shape: The dimensionality of the layer.
         :param traces: Whether to record spike traces.
@@ -1343,7 +1314,6 @@ class SRM0Nodes(Nodes):
         # language=rst
         """
         Runs a single simulation step.
-
         :param x: Inputs to the layer.
         """
         # Decay voltages.
@@ -1398,7 +1368,6 @@ class SRM0Nodes(Nodes):
         # language=rst
         """
         Sets mini-batch size. Called when layer is added to a network.
-
         :param batch_size: Mini-batch size.
         """
         super().set_batch_size(batch_size=batch_size)

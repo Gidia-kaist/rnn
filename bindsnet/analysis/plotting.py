@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 
+from datetime import datetime
 from matplotlib.axes import Axes
 from matplotlib.image import AxesImage
 from torch.nn.modules.utils import _pair
@@ -12,7 +13,7 @@ from typing import Tuple, List, Optional, Sized, Dict, Union
 from ..utils import reshape_locally_connected_weights, reshape_conv2d_weights
 
 plt.ion()
-
+now = datetime.now()
 
 def plot_input(
     image: torch.Tensor,
@@ -166,7 +167,7 @@ def plot_spikes(
                 "%s spikes for neurons (%d - %d) from t = %d to %d " % args
             )
 
-    plt.draw()
+    #plt.draw()
 
     return ims, axes
 
@@ -178,11 +179,13 @@ def plot_weights(
     im: Optional[AxesImage] = None,
     figsize: Tuple[int, int] = (5, 5),
     cmap: str = "hot_r",
+    count: int = 0,
 ) -> AxesImage:
     # language=rst
     """
     Plot a connection weight matrix.
 
+    :param count: Image #
     :param weights: Weight matrix of ``Connection`` object.
     :param wmin: Minimum allowed weight value.
     :param wmax: Maximum allowed weight value.
@@ -192,21 +195,19 @@ def plot_weights(
     :return: ``AxesImage`` for re-drawing the weights plot.
     """
     local_weights = weights.detach().clone().cpu().numpy()
-    if not im:
-        fig, ax = plt.subplots(figsize=figsize)
+    fig, ax = plt.subplots(figsize=figsize)
 
-        im = ax.imshow(local_weights, cmap=cmap, vmin=wmin, vmax=wmax)
-        div = make_axes_locatable(ax)
-        cax = div.append_axes("right", size="5%", pad=0.05)
+    im = ax.imshow(local_weights, cmap=cmap, vmin=wmin, vmax=wmax)
+    div = make_axes_locatable(ax)
+    cax = div.append_axes("right", size="5%", pad=0.05)
 
-        ax.set_xticks(())
-        ax.set_yticks(())
-        ax.set_aspect("auto")
+    ax.set_xticks(())
+    ax.set_yticks(())
+    ax.set_aspect("auto")
 
-        plt.colorbar(im, cax=cax)
-        fig.tight_layout()
-    else:
-        im.set_data(local_weights)
+    plt.colorbar(im, cax=cax)
+    fig.tight_layout()
+    fig.savefig('/home/gidia/anaconda3/envs/myspace/examples/mnist/outputs/imgs/'+str(now.year)+'_'+str(now.month)+'_'+str(now.day)+'_'+str(now.hour)+'_img_'+ str(count) + '.png')
 
     return im
 
