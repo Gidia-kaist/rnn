@@ -99,8 +99,7 @@ network = DiehlAndCook2015(
 )
 
 
-with open('/home/gidia/anaconda3/envs/myspace/examples/mnist/log/weight_seed.p', 'rb')as file:
-    seed_weight_bf = pickle.load(file)
+
 
 
 # Directs network to GPU
