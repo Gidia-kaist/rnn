@@ -68,6 +68,7 @@ class Network(torch.nn.Module):
 
     def __init__(
             self,
+            filter_mask: bool = True,
             dt: float = 1.0,
             batch_size: int = 1,
             learning: bool = True,
@@ -84,12 +85,11 @@ class Network(torch.nn.Module):
 
         self.dt = dt
         self.batch_size = batch_size
-
         self.layers = {}
         self.connections = {}
         self.monitors = {}
         self.train(learning)
-
+        self.filter_mask = filter_mask
         if reward_fn is not None:
             self.reward_fn = reward_fn()
         else:
@@ -209,6 +209,7 @@ class Network(torch.nn.Module):
         # language=rst
         """
         Simulate network for given inputs and time.
+        :param filter: Do connectivity pruning or not
         :param inpts: Dictionary of ``Tensor``s of shape ``[time, *input_shape]`` or
                       ``[batch_size, time, *input_shape]``.
         :param time: Simulation time.
@@ -257,6 +258,8 @@ class Network(torch.nn.Module):
         unclamps = kwargs.get("unclamp", {})
         masks = kwargs.get("masks", {})
         injects_v = kwargs.get("injects_v", {})
+
+        boolean_mask = torch.ones([784, 1600])
 
         # Compute reward.
         if self.reward_fn is not None:
@@ -337,7 +340,9 @@ class Network(torch.nn.Module):
             # Run synapse updates.
             for c in self.connections:
                 self.connections[c].update(
-                    mask=masks.get(c, None), learning=self.learning, **kwargs
+                    mask=masks.get(c, None),
+                    learning=self.learning,
+                    **kwargs
                 )
 
             # Get input to all layers.
@@ -350,6 +355,9 @@ class Network(torch.nn.Module):
         # Re-normalize connections.
         for c in self.connections:
             self.connections[c].normalize()
+
+
+
 
     def reset_(self) -> None:
         # language=rst
@@ -373,3 +381,7 @@ class Network(torch.nn.Module):
         """
         self.learning = mode
         return super().train(mode)
+
+    def share(self, filter_mask):
+        self.filter_mask = filter_mask
+

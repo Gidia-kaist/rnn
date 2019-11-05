@@ -8,5 +8,6 @@ from datetime import datetime
 with open('/home/gidia/anaconda3/envs/myspace/examples/mnist/log/weight_seed.p', 'rb')as file:
     seed_weight_bf = pickle.load(file)
 print(seed_weight_bf)
-print(seed_weight_bf[0:, 0:10])
+seed_sum = torch.sum(seed_weight_bf)
+print(seed_sum)
 

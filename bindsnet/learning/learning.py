@@ -4,6 +4,7 @@ from typing import Union, Optional, Sequence
 import torch
 import numpy as np
 
+from bindsnet.shared_preference import SharedPreference
 from ..network.nodes import SRM0Nodes
 from ..network.topology import (
     AbstractConnection,
@@ -12,6 +13,7 @@ from ..network.topology import (
     LocalConnection,
 )
 from ..utils import im2col_indices
+
 
 
 class LearningRule(ABC):
@@ -148,7 +150,7 @@ class PostPre(LearningRule):
             weight_decay=weight_decay,
             **kwargs
         )
-
+        boolean_mask = []
         assert (
             self.source.traces and self.target.traces
         ), "Both pre- and post-synaptic nodes must record spike traces."
@@ -168,21 +170,35 @@ class PostPre(LearningRule):
         Post-pre learning rule for ``Connection`` subclass of ``AbstractConnection`` class.
         """
         batch_size = self.source.batch_size
-
         source_s = self.source.s.view(batch_size, -1).unsqueeze(2).float()
         source_x = self.source.x.view(batch_size, -1).unsqueeze(2)
         target_s = self.target.s.view(batch_size, -1).unsqueeze(1).float()
         target_x = self.target.x.view(batch_size, -1).unsqueeze(1)
-
         # Pre-synaptic update.
+        '''
+        print(SharedPreference.get_filter_mask(SharedPreference))
+        if SharedPreference.get_filter_mask(SharedPreference) == True:
+            for i in range(784):
+                for j in range(1600):
+                    if self.connection.w[i, j] > 0.2:
+                        SharedPreference.set_boolean_mask(SharedPreference, i, j, 0)
+        boolean_mask = SharedPreference.get_boolean_mask(SharedPreference)
+        '''
+
+
+
+        boolean_mask = SharedPreference.get_boolean_mask(SharedPreference)
+        #print(boolean_mask)
         if self.nu[0]:
             update = self.reduction(torch.bmm(source_s, target_x), dim=0)
-            self.connection.w -= self.nu[0] * update
+
+            self.connection.w -= self.nu[0] * update *boolean_mask
 
         # Post-synaptic update.
         if self.nu[1]:
             update = self.reduction(torch.bmm(source_x, target_s), dim=0)
-            self.connection.w += self.nu[1] * update
+
+            self.connection.w += self.nu[1] * update *boolean_mask
 
         super().update()
 

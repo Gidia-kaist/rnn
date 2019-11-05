@@ -5,6 +5,8 @@ import torch
 from sklearn.linear_model import LogisticRegression
 
 
+
+
 def assign_labels(
     spikes: torch.Tensor,
     labels: torch.Tensor,
@@ -24,6 +26,7 @@ def assign_labels(
     :return: Tuple of class assignments, per-class spike proportions, and per-class firing rates.
     """
     n_neurons = spikes.size(2)
+
 
     if rates is None:
         rates = torch.zeros_like(torch.Tensor(n_neurons, n_labels))
@@ -90,7 +93,7 @@ def logreg_predict(spikes: torch.Tensor, logreg: LogisticRegression) -> torch.Te
 
 def all_activity(
     spikes: torch.Tensor, assignments: torch.Tensor, n_labels: int
-) -> torch.Tensor:
+, temp=None) -> torch.Tensor:
     # language=rst
     """
     Classify data with the label with highest average spiking activity over all neurons.
@@ -106,10 +109,12 @@ def all_activity(
     spikes = spikes.sum(1)
 
     rates = torch.zeros(n_samples, n_labels)
+
+
     for i in range(n_labels):
         # Count the number of neurons with this label assignment.
         n_assigns = torch.sum(assignments == i).float()
-
+        #print(str(i)+"_"+str(n_assigns))
         if n_assigns > 0:
             # Get indices of samples with this label.
             indices = torch.nonzero(assignments == i).view(-1)

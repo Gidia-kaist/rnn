@@ -207,7 +207,7 @@ def plot_weights(
 
     plt.colorbar(im, cax=cax)
     fig.tight_layout()
-    fig.savefig('/home/gidia/anaconda3/envs/myspace/examples/mnist/outputs/imgs/'+str(now.year)+'_'+str(now.month)+'_'+str(now.day)+'_'+str(now.hour)+'_img_'+ str(count) + '.png')
+    fig.savefig('/home/gidia/anaconda3/envs/myspace/examples/mnist/outputs/imgs/'+str(now.year)+'_'+str(now.month)+'_'+str(now.day)+'_'+str(now.hour)+'_'+str(now.minute)+'_img_'+ str(count) + '.png')
 
     return im
 

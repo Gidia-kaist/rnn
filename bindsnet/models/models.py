@@ -134,6 +134,8 @@ class DiehlAndCook2015(Network):
         input_layer = Input(
             n=self.n_inpt, shape=self.inpt_shape, traces=True, tc_trace=20.0
         )
+
+
         exc_layer = DiehlAndCookNodes(
             n=self.n_neurons,
             traces=True,
@@ -158,8 +160,8 @@ class DiehlAndCook2015(Network):
         )
 
         # Connections
-        w = 0.3 * torch.rand(self.n_inpt, self.n_neurons)
-
+        w = 0.3*torch.rand(self.n_inpt, self.n_neurons)
+        '''
         # Read the previous weight map and save as 'seed_weight_bf'
         with open('/home/gidia/anaconda3/envs/myspace/examples/mnist/log/weight_seed.p', 'rb')as file:
             seed_weight_bf = pickle.load(file)
@@ -168,7 +170,7 @@ class DiehlAndCook2015(Network):
         w[0:, 0:320] = seed_weight_bf[0:, 0:320]
 
         print(w)
-
+        '''
         input_exc_conn = Connection(
             source=input_layer,
             target=exc_layer,
@@ -180,14 +182,19 @@ class DiehlAndCook2015(Network):
             wmax=wmax,
             norm=norm,
         )
+
+
+
         w = self.exc * torch.diag(torch.ones(self.n_neurons))
         exc_inh_conn = Connection(
             source=exc_layer, target=inh_layer, w=w, wmin=0, wmax=self.exc
+
         )
         w = -self.inh * (
             torch.ones(self.n_neurons, self.n_neurons)
             - torch.diag(torch.ones(self.n_neurons))
         )
+        print(w.size())
         inh_exc_conn = Connection(
             source=inh_layer, target=exc_layer, w=w, wmin=-self.inh, wmax=0
         )
@@ -199,6 +206,9 @@ class DiehlAndCook2015(Network):
         self.add_connection(input_exc_conn, source="X", target="Ae")
         self.add_connection(exc_inh_conn, source="Ae", target="Ai")
         self.add_connection(inh_exc_conn, source="Ai", target="Ae")
+
+
+
 
 
 class DiehlAndCook2015v2(Network):
@@ -513,3 +523,4 @@ class LocallyConnectedNetwork(Network):
         self.add_layer(output_layer, name="Y")
         self.add_connection(input_output_conn, source="X", target="Y")
         self.add_connection(recurrent_conn, source="Y", target="Y")
+
