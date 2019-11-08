@@ -5,7 +5,7 @@ class SharedPreference:
 
     # Default setting
     filter_mask = False
-    boolean_mask = torch.ones(784, 1600)
+    boolean_mask = torch.ones(784, 100)
     boolean_mask = boolean_mask.cuda()
     def __init__(self):
         self.filter_mask = False

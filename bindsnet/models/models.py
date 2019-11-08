@@ -194,7 +194,7 @@ class DiehlAndCook2015(Network):
             torch.ones(self.n_neurons, self.n_neurons)
             - torch.diag(torch.ones(self.n_neurons))
         )
-        print(w.size())
+        #print(w.size())
         inh_exc_conn = Connection(
             source=inh_layer, target=exc_layer, w=w, wmin=-self.inh, wmax=0
         )

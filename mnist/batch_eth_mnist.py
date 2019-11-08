@@ -25,12 +25,12 @@ global seed_weight_now
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--seed", type=int, default=0)
-parser.add_argument("--n_neurons", type=int, default=1600)
-parser.add_argument("--batch_size", type=int, default=8)
-parser.add_argument("--n_epochs", type=int, default=5)
+parser.add_argument("--n_neurons", type=int, default=100)
+parser.add_argument("--batch_size", type=int, default=1)
+parser.add_argument("--n_epochs", type=int, default=1)
 parser.add_argument("--n_test", type=int, default=10000)
 parser.add_argument("--n_workers", type=int, default=-1)
-parser.add_argument("--update_steps", type=int, default=100)
+parser.add_argument("--update_steps", type=int, default=10)
 parser.add_argument("--exc", type=float, default=22.5)
 parser.add_argument("--inh", type=float, default=120)
 parser.add_argument("--theta_plus", type=float, default=0.05)
@@ -44,7 +44,7 @@ parser.add_argument("--plot", dest="plot", action="store_true")
 parser.add_argument("--nu_single", type=float, default=1e-3)
 parser.add_argument("--nu_pair", type=float, default=1e-2)
 parser.add_argument("--gpu", dest="gpu", action="store_true")
-parser.set_defaults(plot=True , gpu=True, train=True)
+parser.set_defaults(plot=False, gpu=True, train=True)
 
 args = parser.parse_args()
 
@@ -154,8 +154,8 @@ voltage_axes, voltage_ims = None, None
 
 temp = []
 count = 0
-mark_true = torch.ones(1600)
-mark_false = torch.zeros(1600)
+mark_true = torch.ones(n_neurons)
+mark_false = torch.zeros(n_neurons)
 check_list = []
 mark_save = False
 
@@ -187,9 +187,6 @@ for epoch in range(n_epochs):
         inpts = {"X": batch["encoded_image"]}
         if gpu:
             inpts = {k: v.cuda() for k, v in inpts.items()}
-        #print(network.connections[("X", "Ae")].w.size())
-        #network.connections[("Ai", "Ae")].w[:, :] = 0
-        #print(network.connections[("Ai", "Ae")].w)
 
         if step % update_steps == 0 and step > 0:
             # Convert the array of labels into a tensor
@@ -199,16 +196,15 @@ for epoch in range(n_epochs):
             all_activity_pred = all_activity(
                 spikes=spike_record, assignments=assignments, n_labels=n_classes
             )
+            print(assignments)
+            print(label_tensor.long())
             proportion_pred = proportion_weighting(
                 spikes=spike_record,
                 assignments=assignments,
                 proportions=proportions,
                 n_labels=n_classes,
             )
-            #print("\n")
-            #print(assignments.size())
-            #print(label_tensor.long().size())
-            #print(all_activity_pred.size())
+
             # Compute network accuracy according to available classification strategies.
             accuracy["all"].append(
                 100
@@ -220,8 +216,8 @@ for epoch in range(n_epochs):
                 * torch.sum(label_tensor.long() == proportion_pred).item()
                 / len(label_tensor)
             )
-            if accuracy["all"][-1] > 80:
-               SharedPreference.set_filter_mask(True)
+            if accuracy["all"][-1] > 40:
+                SharedPreference.set_filter_mask(SharedPreference, True)
 
             print(
                 "\nAll activity accuracy: %.2f (last), %.2f (average), %.2f (best)"
@@ -253,24 +249,26 @@ for epoch in range(n_epochs):
                 n_labels=n_classes,
                 rates=rates,
             )
+            #print(assignments.size())
             #print(all_activity_pred.size())
             if count == 1:
                 temp = assignments
                 #print(temp.size())
+
             elif count > 1:
                 check_list = torch.where(temp == assignments, mark_true, mark_false)
                 temp = assignments
 
-                for i in range(1600):
+                for i in range(n_neurons):
                     if check_list[i] == 1:
-                        if abs(max(network.connections[("X", "Ae")].w[:, i]) - min(network.connections[("X", "Ae")].w[:, i])) > 0.35:
+                        if abs(max(network.connections[("X", "Ae")].w[:, i]) - min(network.connections[("X", "Ae")].w[:, i])) > 0.85:
                             # set connectivity of inpts to exc as ZERO(FALSE)
                             SharedPreference.set_boolean_mask(SharedPreference, i, 0)
                             # set connectivity of inh to exc as ZERO(FALSE)
                             network.connections[("Ai", "Ae")].w[:, i] = 0
                             mark_save = True
                             #print(network.connections[("X", "Ae")].w)
-                            #print("Some connectivities have changed!")
+                            print("Some connectivities have changed! at: "+str(i))
                         else:
                             SharedPreference.set_boolean_mask(SharedPreference, i, 1)
 
@@ -282,7 +280,7 @@ for epoch in range(n_epochs):
                     #          + str( now.month) + '_' + str(now.day) + '_' + str(now.hour) + '_' + str(now.minute) + '.csv', index=False)
                     #mark_save = False
             count += 1
-            print(assignments[0:80])
+            #print(assignments[0:80])
             #print(SharedPreference.get_boolean_mask(SharedPreference))
             labels = []
         labels.extend(batch["label"].tolist())
@@ -300,7 +298,11 @@ for epoch in range(n_epochs):
         % update_interval: (step * batch_size % update_interval)
                            + s.size(0)
         ] = s
-
+        # print(s.size())
+        #print("\n")
+        #print(spikes["Ae"].get("s").sum())
+        #print(s.size())
+        #print(spike_record.size())
         # Get voltage recording.
         exc_voltages = exc_voltage_monitor.get("v")
         inh_voltages = inh_voltage_monitor.get("v")
@@ -313,7 +315,7 @@ for epoch in range(n_epochs):
             if step % update_steps == 0 and step > 0:
                 # image = batch["image"].view(28, 28)
                 # inpt = inpts["X"].view(time, 784).sum(0).view(28, 28)
-                #count += 1
+                # count += 1
                 input_exc_weights = network.connections[("X", "Ae")].w
                 square_weights = get_square_weights(
                     input_exc_weights.view(784, n_neurons), n_sqrt, 28
@@ -336,16 +338,6 @@ for epoch in range(n_epochs):
                 # )
 
                 plt.pause(1e-8)
-
-        '''When weight is large enough to disconnect.
-        if accuracy["all"][-1] > 80:
-            for i in range(784):
-                for j in range(1600):
-                    if network.connections[("X", "Ae")].w[i, j] > 0.25:
-                        
-    
-'''
-
         network.reset_()  # Reset state variables.
     print("Progress: %d / %d (%.4f seconds)" % (epoch + 1, n_epochs, t() - start))
 

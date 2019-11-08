@@ -61,6 +61,7 @@ class Monitor(AbstractMonitor):
                 )
                 for v in self.state_vars
             }
+            #print(self.recording.size())
 
     def get(self, var: str) -> torch.Tensor:
         # language=rst

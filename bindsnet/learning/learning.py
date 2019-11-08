@@ -21,7 +21,7 @@ class LearningRule(ABC):
     """
     Abstract base class for learning rules.
     """
-
+    print("Node_1_!!!")
     def __init__(
         self,
         connection: AbstractConnection,
@@ -47,6 +47,7 @@ class LearningRule(ABC):
         self.wmin = connection.wmin
         self.wmax = connection.wmax
 
+        boolean_mask = []
         # Learning rate(s).
         if nu is None:
             nu = [0.0, 0.0]
@@ -69,10 +70,12 @@ class LearningRule(ABC):
         """
         Abstract method for a learning rule update.
         """
+        boolean_mask = SharedPreference.get_boolean_mask(SharedPreference)
+        #print(self.weight_decay)
         # Implement weight decay.
         if self.weight_decay:
             self.connection.w -= self.weight_decay * self.connection.w
-
+            print("Node_2!!!")
         # Bound weights.
         if (
             self.connection.wmin != -np.inf or self.connection.wmax != np.inf
