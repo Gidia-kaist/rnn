@@ -172,6 +172,7 @@ class PostPre(LearningRule):
         """
         Post-pre learning rule for ``Connection`` subclass of ``AbstractConnection`` class.
         """
+        #SharedPreference.set_count(SharedPreference, 2)
         batch_size = self.source.batch_size
         source_s = self.source.s.view(batch_size, -1).unsqueeze(2).float()
         source_x = self.source.x.view(batch_size, -1).unsqueeze(2)

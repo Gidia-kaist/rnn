@@ -25,12 +25,12 @@ global seed_weight_now
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--seed", type=int, default=0)
-parser.add_argument("--n_neurons", type=int, default=100)
-parser.add_argument("--batch_size", type=int, default=1)
-parser.add_argument("--n_epochs", type=int, default=1)
+parser.add_argument("--n_neurons", type=int, default=1600)
+parser.add_argument("--batch_size", type=int, default=8)
+parser.add_argument("--n_epochs", type=int, default=5)
 parser.add_argument("--n_test", type=int, default=10000)
 parser.add_argument("--n_workers", type=int, default=-1)
-parser.add_argument("--update_steps", type=int, default=10)
+parser.add_argument("--update_steps", type=int, default=100)
 parser.add_argument("--exc", type=float, default=22.5)
 parser.add_argument("--inh", type=float, default=120)
 parser.add_argument("--theta_plus", type=float, default=0.05)
@@ -44,7 +44,7 @@ parser.add_argument("--plot", dest="plot", action="store_true")
 parser.add_argument("--nu_single", type=float, default=1e-3)
 parser.add_argument("--nu_pair", type=float, default=1e-2)
 parser.add_argument("--gpu", dest="gpu", action="store_true")
-parser.set_defaults(plot=False, gpu=True, train=True)
+parser.set_defaults(plot=True, gpu=True, train=True, sparse=False)
 
 args = parser.parse_args()
 
@@ -67,6 +67,7 @@ plot = args.plot
 gpu = args.gpu
 nu_single = args.nu_single
 nu_pair = args.nu_pair
+sparse = args.sparse
 
 update_interval = update_steps * batch_size
 now = datetime.now()
@@ -74,7 +75,7 @@ now = datetime.now()
 
 filter_mask = True
 
-
+final_stage_num = 300
 
 # Sets up Gpu use
 if gpu and torch.cuda.is_available():
@@ -158,6 +159,7 @@ mark_true = torch.ones(n_neurons)
 mark_false = torch.zeros(n_neurons)
 check_list = []
 mark_save = False
+mark_final = False
 
 spike_record = torch.zeros(update_interval, time, n_neurons)
 
@@ -166,6 +168,9 @@ print("\nBegin training.\n")
 start = t()
 csv_datas = []
 csv_datas_conn = []
+copied_one = []
+
+
 for epoch in range(n_epochs):
     labels = []
 
@@ -189,15 +194,18 @@ for epoch in range(n_epochs):
             inpts = {k: v.cuda() for k, v in inpts.items()}
 
         if step % update_steps == 0 and step > 0:
+
             # Convert the array of labels into a tensor
             label_tensor = torch.tensor(labels)
-
+            #print("Input count :" + str(SharedPreference.get_count(SharedPreference, 1)))
+            #print("exc to inh count :" + str(SharedPreference.get_count(SharedPreference, 2)))
+            #print("inh to exc count :" + str(SharedPreference.get_count(SharedPreference, 3)))
             # Get network predictions.
             all_activity_pred = all_activity(
                 spikes=spike_record, assignments=assignments, n_labels=n_classes
             )
-            print(assignments)
-            print(label_tensor.long())
+            # print(assignments)
+            # print(label_tensor.long())
             proportion_pred = proportion_weighting(
                 spikes=spike_record,
                 assignments=assignments,
@@ -251,26 +259,47 @@ for epoch in range(n_epochs):
             )
             #print(assignments.size())
             #print(all_activity_pred.size())
-            if count == 1:
-                temp = assignments
-                #print(temp.size())
+            if sparse:
+                if mark_final == False and count <= final_stage_num:
+                    if count == 1:
+                        temp = assignments
+                        # print(temp.size())
 
-            elif count > 1:
-                check_list = torch.where(temp == assignments, mark_true, mark_false)
-                temp = assignments
+                    elif count % 50 == 0 and count > 1:
+                        check_list = torch.where(temp == assignments, mark_true, mark_false)
+                        temp = assignments
+                        temp_n_neuron = SharedPreference.get_boolean_mask(SharedPreference)
+                        temp_count = 0
+                        for j in temp_n_neuron.nonzero():
+                            temp_count += 1
+                            i = j.item()
+                            if check_list[i] == 1:
+                                if abs(max(network.connections[("X", "Ae")].w[:, i]) - min(network.connections[("X", "Ae")].w[:, i])) > 0.6:
+                                    # set connectivity of inpts to exc as ZERO(FALSE)
+                                    SharedPreference.set_boolean_mask(SharedPreference, i, 0)
+                                    # set connectivity of inh to exc as ZERO(FALSE)
+                                    SharedPreference.set_copy(SharedPreference, target=network.connections[("X", "Ae")].w, col=i)
+                                    network.connections[("X", "Ae")].w[:, i] = 0
+                                    mark_save = True
+                                    # print(network.connections[("X", "Ae")].w)
+                                    print("Some connectivities have changed! at: " + str(i))
+                                else:
+                                    SharedPreference.set_boolean_mask(SharedPreference, i, 1)
 
-                for i in range(n_neurons):
-                    if check_list[i] == 1:
-                        if abs(max(network.connections[("X", "Ae")].w[:, i]) - min(network.connections[("X", "Ae")].w[:, i])) > 0.85:
-                            # set connectivity of inpts to exc as ZERO(FALSE)
-                            SharedPreference.set_boolean_mask(SharedPreference, i, 0)
-                            # set connectivity of inh to exc as ZERO(FALSE)
-                            network.connections[("Ai", "Ae")].w[:, i] = 0
-                            mark_save = True
-                            #print(network.connections[("X", "Ae")].w)
-                            print("Some connectivities have changed! at: "+str(i))
-                        else:
-                            SharedPreference.set_boolean_mask(SharedPreference, i, 1)
+                        print("Loop count: " + str(temp_count))
+                elif mark_final == False and count > final_stage_num:
+                    mark_final = True
+                    copied_one = SharedPreference.get_copy(SharedPreference)
+                    for i in range(784):
+                        for j in range(n_neurons):
+                            if copied_one[i, j] != 0:
+                                network.connections[("X", "Ae")].w[i, j] = copied_one[i, j]
+                    for h in range(n_neurons):
+                        SharedPreference.set_boolean_mask(SharedPreference, h, 1)
+                    print("Start_all_connection_test")
+
+                elif mark_final == True and count > final_stage_num:
+                    print("\nFinal_Stage__")
 
 
                 #if mark_save == True:
@@ -289,6 +318,7 @@ for epoch in range(n_epochs):
 
 
         # Run the network on the input.
+        SharedPreference.initialize_count(SharedPreference)
         network.run(inpts=inpts, time=time, input_time_dim=1)
 
         # Add to spikes recording.

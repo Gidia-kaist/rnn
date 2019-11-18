@@ -27,7 +27,7 @@ def assign_labels(
     """
     n_neurons = spikes.size(2)
 
-    print("assign_labels")
+    #print("assign_labels")
     if rates is None:
         rates = torch.zeros_like(torch.Tensor(n_neurons, n_labels))
 
@@ -106,32 +106,32 @@ def all_activity(
     :return: Predictions tensor of shape ``(n_samples,)`` resulting from the "all activity" classification scheme.
     """
     n_samples = spikes.size(0)
-    print("\n")
-    print(spikes.size())
+    #print("\n")
+    #print(spikes.size())
     # Sum over time dimension (spike ordering doesn't matter).
     spikes = spikes.sum(1)
-    print(spikes)
-    print(spikes.size())
+    #print(spikes)
+    #print(spikes.size())
     rates = torch.zeros(n_samples, n_labels)
 
-    print("all_activity")
+    #print("all_activity")
     for i in range(n_labels):
         # Count the number of neurons with this label assignment.
         n_assigns = torch.sum(assignments == i).float()
-        print(str(i)+"_"+str(n_assigns))
+        #print(str(i)+"_"+str(n_assigns))
         if n_assigns > 0:
             # Get indices of samples with this label.
             indices = torch.nonzero(assignments == i).view(-1)
-            print(str(i) + "_" + str(indices))
+            #print(str(i) + "_" + str(indices))
             # Compute layer-wise firing rate for this label.
-            print(spikes[:, indices])
-            print(torch.sum(spikes[:, indices], 1))
+            #print(spikes[:, indices])
+            #print(torch.sum(spikes[:, indices], 1))
             rates[:, i] = torch.sum(spikes[:, indices], 1) / n_assigns
-            print(rates[:, i])
+            #print(rates[:, i])
 
     # Predictions are arg-max of layer-wise firing rates.
-    print(rates)
-    print(torch.sort(rates, dim=1, descending=True)[1][:, 0])
+    #print(rates)
+    #print(torch.sort(rates, dim=1, descending=True)[1][:, 0])
     return torch.sort(rates, dim=1, descending=True)[1][:, 0]
 
 

@@ -4,7 +4,7 @@ from operator import mul
 from typing import Iterable, Optional, Union
 
 import torch
-
+from bindsnet.shared_preference import SharedPreference
 
 class Nodes(torch.nn.Module):
     # language=rst
@@ -90,6 +90,7 @@ class Nodes(torch.nn.Module):
         Abstract base class method for a single simulation step.
         :param x: Inputs to the layer.
         """
+
         if self.traces:
             # Decay and set spike traces.
             self.x *= self.trace_decay
@@ -102,6 +103,7 @@ class Nodes(torch.nn.Module):
         if self.sum_input:
             # Add current input to running sum.
             self.summed += x.float()
+
 
     def reset_(self) -> None:
         # language=rst
@@ -201,6 +203,7 @@ class Input(Nodes, AbstractInput):
         )
 
     def forward(self, x: torch.Tensor) -> None:
+
         # language=rst
         """
         On each simulation step, set the spikes of the population equal to the inputs.
@@ -210,6 +213,7 @@ class Input(Nodes, AbstractInput):
         self.s = x.byte()
 
         super().forward(x)
+
 
     def reset_(self) -> None:
         # language=rst
@@ -414,6 +418,7 @@ class IFNodes(Nodes):
 
     def forward(self, x: torch.Tensor) -> None:
         # language=rst
+
         """
         Runs a single simulation step.
         :param x: Inputs to the layer.
@@ -537,6 +542,7 @@ class LIFNodes(Nodes):
 
     def forward(self, x: torch.Tensor) -> None:
         # language=rst
+
         """
         Runs a single simulation step.
         :param x: Inputs to the layer.
@@ -982,6 +988,8 @@ class DiehlAndCookNodes(Nodes):
         self.one_spike = one_spike  # One spike per timestep.
 
     def forward(self, x: torch.Tensor) -> None:
+
+        #print(x.size())
         # language=rst
         """
         Runs a single simulation step.

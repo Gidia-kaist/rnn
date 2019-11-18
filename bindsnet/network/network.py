@@ -266,6 +266,7 @@ class Network(torch.nn.Module):
             kwargs["reward"] = self.reward_fn.compute(**kwargs)
 
         # Dynamic setting of batch size.
+        #print(inpts)
         if inpts != {}:
             for key in inpts:
                 # goal shape is [time, batch, n_0, ...]
@@ -339,6 +340,7 @@ class Network(torch.nn.Module):
 
             # Run synapse updates.
             for c in self.connections:
+                # print(self.connections[c])
                 self.connections[c].update(
                     mask=masks.get(c, None),
                     learning=self.learning,
