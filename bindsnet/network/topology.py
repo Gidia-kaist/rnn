@@ -206,6 +206,9 @@ class Connection(AbstractConnection):
         """
         #print("normalize step")
         if self.norm is not None:
+            #states num : 8
+
+
             w_abs_sum = self.w.abs().sum(0).unsqueeze(0)
             w_abs_sum[w_abs_sum == 0] = 1.0
             # print(w_abs_sum)
