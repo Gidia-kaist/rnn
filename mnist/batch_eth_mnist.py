@@ -24,6 +24,8 @@ global seed_weight_bf
 global seed_weight_now
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--prune", type=int, default=50)
+parser.add_argument("--connectivity", type=float, default=0.3)
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--n_neurons", type=int, default=1600)
 parser.add_argument("--batch_size", type=int, default=8)
@@ -44,6 +46,7 @@ parser.add_argument("--plot", dest="plot", action="store_true")
 parser.add_argument("--nu_single", type=float, default=1e-3)
 parser.add_argument("--nu_pair", type=float, default=1e-2)
 parser.add_argument("--gpu", dest="gpu", action="store_true")
+parser.add_argument("--final_stage", type=int, default=300)
 parser.set_defaults(plot=True, gpu=True, train=True, sparse=False)
 
 args = parser.parse_args()
@@ -68,14 +71,16 @@ gpu = args.gpu
 nu_single = args.nu_single
 nu_pair = args.nu_pair
 sparse = args.sparse
-
+connectivity = args.connectivity
+prune = args.prune
+final_stage_num = args.final_stage
 update_interval = update_steps * batch_size
 now = datetime.now()
 
 
 filter_mask = True
 
-final_stage_num = 300
+
 
 # Sets up Gpu use
 if gpu and torch.cuda.is_available():
@@ -170,6 +175,14 @@ csv_datas = []
 csv_datas_conn = []
 copied_one = []
 
+csv_data_weight = []
+
+h = network.connections[("X", "Ae")].w.cpu()
+k = h.numpy()
+dfw = pd.DataFrame(k)
+dfw.to_csv('/home/gidia/anaconda3/envs/myspace/examples/mnist/outputs/weight[init]_'+ str(now.year) + '_' + str(
+        now.month) + '_' + str(now.day) + '_' + str(now.hour) + '_' + str(now.minute) + '.csv', index=False)
+
 
 for epoch in range(n_epochs):
     labels = []
@@ -192,6 +205,8 @@ for epoch in range(n_epochs):
         inpts = {"X": batch["encoded_image"]}
         if gpu:
             inpts = {k: v.cuda() for k, v in inpts.items()}
+
+
 
         if step % update_steps == 0 and step > 0:
 
@@ -265,7 +280,7 @@ for epoch in range(n_epochs):
                         temp = assignments
                         # print(temp.size())
 
-                    elif count % 50 == 0 and count > 1:
+                    elif count % prune == 0 and count > 1:
                         check_list = torch.where(temp == assignments, mark_true, mark_false)
                         temp = assignments
                         temp_n_neuron = SharedPreference.get_boolean_mask(SharedPreference)
@@ -274,7 +289,7 @@ for epoch in range(n_epochs):
                             temp_count += 1
                             i = j.item()
                             if check_list[i] == 1:
-                                if abs(max(network.connections[("X", "Ae")].w[:, i]) - min(network.connections[("X", "Ae")].w[:, i])) > 0.6:
+                                if abs(max(network.connections[("X", "Ae")].w[:, i]) - min(network.connections[("X", "Ae")].w[:, i])) > connectivity:
                                     # set connectivity of inpts to exc as ZERO(FALSE)
                                     SharedPreference.set_boolean_mask(SharedPreference, i, 0)
                                     # set connectivity of inh to exc as ZERO(FALSE)
@@ -371,6 +386,11 @@ for epoch in range(n_epochs):
         network.reset_()  # Reset state variables.
     print("Progress: %d / %d (%.4f seconds)" % (epoch + 1, n_epochs, t() - start))
 
+    h = network.connections[("X", "Ae")].w.cpu()
+    k = h.numpy()
+    dfw = pd.DataFrame(k)
+    dfw.to_csv('/home/gidia/anaconda3/envs/myspace/examples/mnist/outputs/weight['+ str(epoch) +']_' + str(now.year) + '_' + str(
+        now.month) + '_' + str(now.day) + '_' + str(now.hour) + '_' + str(now.minute) + '.csv', index=False)
 
 print("Training complete.\n")
 

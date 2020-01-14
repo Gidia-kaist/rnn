@@ -1001,14 +1001,14 @@ class DiehlAndCookNodes(Nodes):
             self.theta *= self.theta_decay
 
         # Integrate inputs.
-        self.v += (self.refrac_count == 0).float() * x
+        self.v += (self.refrac_count == 0).float() * x  # refrac 이 아닌 것만큼 inpts 값을 self.v 에 더해줌.
 
-        # Decrement refractory counters.
+        # Decrement refractory counters. refrac counter 를 감소하는 단계.
         self.refrac_count = (self.refrac_count > 0).float() * (
             self.refrac_count - self.dt
         )
 
-        # Check for spiking neurons.
+        # Check for spiking neurons. self.v 부터 thresh 를 넘는 것을 따로 self.s 로 저장.
         self.s = self.v >= self.thresh + self.theta
 
         # Refractoriness, voltage reset, and adaptive thresholds.

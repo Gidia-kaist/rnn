@@ -72,3 +72,5 @@ class SharedPreference:
 
     def get_copy(self):
         return self.copy_w
+
+    #def synapse_filter(self):
