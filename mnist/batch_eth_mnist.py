@@ -23,6 +23,7 @@ global seed_weight
 global seed_weight_bf
 global seed_weight_now
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--prune", type=int, default=50)
 parser.add_argument("--connectivity", type=float, default=0.3)

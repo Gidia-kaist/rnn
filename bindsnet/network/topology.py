@@ -8,7 +8,9 @@ import torch.nn.functional as F
 from torch.nn.modules.utils import _pair
 
 from .nodes import Nodes
-
+import multiprocessing
+import time
+import numpy as np
 
 class AbstractConnection(ABC, Module):
     # language=rst
@@ -203,17 +205,66 @@ class Connection(AbstractConnection):
         """
         Normalize weights so each target neuron has sum of connection weights equal to
         ``self.norm``.
+
+        """
+        """
+        def sorting(target):
+            for i in range(784):
+                for j in range(1600):
+                    start = time.time()
+                    if target[i, j] < 0.0652:
+                        self.w[i, j] = 0.03
+                    elif 0.0652 <= target[i, j] < 0.0833:
+                        target[i, j] = 0.07
+                    elif 0.0833 <= target[i, j] < 0.1:
+                        target[i, j] = 0.09
+                    elif 0.1 <= target[i, j] < 0.1374:
+                        target[i, j] = 0.12
+                    elif 0.1374 <= target[i, j] < 0.1831:
+                        target[i, j] = 0.15
+                    elif 0.1831 <= target[i, j] < 0.2595:
+                        target[i, j] = 0.21
+                    elif 0.2595 <= target[i, j] < 0.4156:
+                        target[i, j] = 0.33
+                    elif 0.4156 <= target[i, j] < 0.8:
+                        target[i, j] = 0.6
+                    print('time: ', time.time() - start)
+                    # print(j)
+                # print('time: ', time.time() - start)
         """
         #print("normalize step")
-        if self.norm is not None:
-            #states num : 8
+        def sorting(target):
+            sec1 = (target >= 0) * (target < 0.0652)
+            sec2 = (target >= 0.0652) * (target < 0.0833)
+            sec3 = (target >= 0.0833) * (target < 0.1)
+            sec4 = (target >= 0.1) * (target < 0.1374)
+            sec5 = (target >= 0.1374) * (target < 0.1831)
+            sec6 = (target >= 0.1831) * (target < 0.2595)
+            sec7 = (target >= 0.2595) * (target < 0.4156)
+            sec8 = (target >= 0.4156) * (target < 0.8)
+            target[sec1] = 0.03
+            target[sec2] = 0.07
+            target[sec3] = 0.09
+            target[sec4] = 0.12
+            target[sec5] = 0.15
+            target[sec6] = 0.21
+            target[sec7] = 0.33
+            target[sec8] = 0.6
 
+        if self.norm is not None:
 
             w_abs_sum = self.w.abs().sum(0).unsqueeze(0)
             w_abs_sum[w_abs_sum == 0] = 1.0
             # print(w_abs_sum)
-            print(self.norm / w_abs_sum)
+            # print(self.norm / w_abs_sum)
             self.w *= self.norm / w_abs_sum
+            #start = time.time()
+            sorting(self.w)
+            #print('time : ', time.time() - start)
+
+
+
+
 
     def normalize_by_max(self) -> None:
         # language=rst
