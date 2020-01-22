@@ -204,7 +204,7 @@ class Connection(AbstractConnection):
         Normalize weights so each target neuron has sum of connection weights equal to
         ``self.norm``.
         """
-        #print("normalize step")
+        
         if self.norm is not None:
             w_abs_sum = self.w.abs().sum(0).unsqueeze(0)
             w_abs_sum[w_abs_sum == 0] = 1.0
