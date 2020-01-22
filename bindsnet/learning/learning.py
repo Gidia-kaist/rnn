@@ -197,13 +197,13 @@ class PostPre(LearningRule):
             update = self.reduction(torch.bmm(source_s, target_x), dim=0)
 
             self.connection.w -= self.nu[0] * update *boolean_mask
-
+            #self.connection.w -= self.nu[0] * update
         # Post-synaptic update.
         if self.nu[1]:
             update = self.reduction(torch.bmm(source_x, target_s), dim=0)
 
             self.connection.w += self.nu[1] * update *boolean_mask
-
+            #self.connection.w += self.nu[1] * update
         super().update()
 
     def _conv2d_connection_update(self, **kwargs) -> None:

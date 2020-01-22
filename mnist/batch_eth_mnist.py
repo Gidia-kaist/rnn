@@ -34,21 +34,21 @@ parser.add_argument("--n_epochs", type=int, default=5)
 parser.add_argument("--n_test", type=int, default=10000)
 parser.add_argument("--n_workers", type=int, default=-1)
 parser.add_argument("--update_steps", type=int, default=100)
-parser.add_argument("--exc", type=float, default=22.5)
-parser.add_argument("--inh", type=float, default=120)
+parser.add_argument("--exc", type=float, default=22.5)  # init: 22.5
+parser.add_argument("--inh", type=float, default=17.5)  # init: 120
 parser.add_argument("--theta_plus", type=float, default=0.05)
-parser.add_argument("--time", type=int, default=200)
+parser.add_argument("--time", type=int, default=500)
 parser.add_argument("--dt", type=int, default=1.0)
 parser.add_argument("--intensity", type=float, default=128)
 parser.add_argument("--progress_interval", type=int, default=10)
 parser.add_argument("--train", dest="train", action="store_true")
 parser.add_argument("--test", dest="train", action="store_false")
 parser.add_argument("--plot", dest="plot", action="store_true")
-parser.add_argument("--nu_single", type=float, default=1e-3)
+parser.add_argument("--nu_single", type=float, default=1e-4)
 parser.add_argument("--nu_pair", type=float, default=1e-2)
 parser.add_argument("--gpu", dest="gpu", action="store_true")
 parser.add_argument("--final_stage", type=int, default=300)
-parser.set_defaults(plot=True, gpu=True, train=True, sparse=False)
+parser.set_defaults(plot=False, gpu=True, train=True, sparse=False, log=True)
 
 args = parser.parse_args()
 
@@ -68,6 +68,7 @@ intensity = args.intensity
 progress_interval = args.progress_interval
 train = args.train
 plot = args.plot
+log = args.log
 gpu = args.gpu
 nu_single = args.nu_single
 nu_pair = args.nu_pair
@@ -176,6 +177,7 @@ csv_datas = []
 csv_datas_conn = []
 copied_one = []
 
+log_count = 1
 csv_data_weight = []
 
 h = network.connections[("X", "Ae")].w.cpu()
@@ -218,7 +220,7 @@ for epoch in range(n_epochs):
             #print("inh to exc count :" + str(SharedPreference.get_count(SharedPreference, 3)))
             # Get network predictions.
             all_activity_pred = all_activity(
-                spikes=spike_record, assignments=assignments, n_labels=n_classes
+                 spikes=spike_record, assignments=assignments, n_labels=n_classes
             )
             # print(assignments)
             # print(label_tensor.long())
@@ -356,6 +358,17 @@ for epoch in range(n_epochs):
         # for l in spikes:
         # print(l, spikes[l].get("s").sum((0, 2)))
 
+
+        if log:
+            if step % update_steps == 0 and step > 0:
+                h = network.connections[("X", "Ae")].w.cpu()
+                k = h.numpy()
+                dfw = pd.DataFrame(k)
+                dfw.to_csv('/home/gidia/anaconda3/envs/myspace/examples/mnist/outputs/weight_log[' + str(log_count) + ']_' + str(
+                    now.year) + '_' + str(
+                    now.month) + '_' + str(now.day) + '_' + str(now.hour) + '_' + str(now.minute) + '.csv', index=False)
+                log_count += 1
+
         # Optionally plot various simulation information.
         if plot:
             if step % update_steps == 0 and step > 0:
@@ -385,6 +398,9 @@ for epoch in range(n_epochs):
 
                 plt.pause(1e-8)
         network.reset_()  # Reset state variables.
+
+
+
     print("Progress: %d / %d (%.4f seconds)" % (epoch + 1, n_epochs, t() - start))
 
     h = network.connections[("X", "Ae")].w.cpu()

@@ -106,7 +106,7 @@ def all_activity(
     :return: Predictions tensor of shape ``(n_samples,)`` resulting from the "all activity" classification scheme.
     """
     n_samples = spikes.size(0)
-    #print("\n")
+    #print(n_samples)
     #print(spikes.size())
     # Sum over time dimension (spike ordering doesn't matter).
     spikes = spikes.sum(1)
@@ -124,7 +124,8 @@ def all_activity(
             indices = torch.nonzero(assignments == i).view(-1)
             #print(str(i) + "_" + str(indices))
             # Compute layer-wise firing rate for this label.
-            #print(spikes[:, indices])
+
+            #print(spikes[:, indices].size())
             #print(torch.sum(spikes[:, indices], 1))
             rates[:, i] = torch.sum(spikes[:, indices], 1) / n_assigns
             #print(rates[:, i])
