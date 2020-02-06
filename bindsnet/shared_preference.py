@@ -5,6 +5,7 @@ class SharedPreference:
 
     # Default setting
     filter_mask = False
+    error_mask = False
     boolean_mask = torch.ones(1600)
     boolean_mask = boolean_mask.cuda()
 
@@ -73,4 +74,9 @@ class SharedPreference:
     def get_copy(self):
         return self.copy_w
 
-    #def synapse_filter(self):
+    def set_error_on(self, boolean_inpt: bool):
+        self.error_mask = boolean_inpt
+        return self.error_mask
+
+    def get_error(self):
+        return self.error_mask

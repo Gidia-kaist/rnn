@@ -1,13 +1,9 @@
 import torch
 
-from bindsnet.shared_preference import SharedPreference
+shape= torch.Size((3,3))
+x = torch.cuda.FloatTensor(shape)
+error_rand = (-2) * torch.rand(shape, out=x) + 1
+error_mask = error_rand * 0.5
 
-a = torch.ones(784, 1600)
-b = SharedPreference.get_copy(SharedPreference)
-print(b[:3, :3])
-for i in range(2):
-    SharedPreference.set_copy(SharedPreference, target=a, col=i)
-
-b = SharedPreference.get_copy(SharedPreference)
-print(b[:3, :3])
-
+print(error_rand)
+print(error_mask)

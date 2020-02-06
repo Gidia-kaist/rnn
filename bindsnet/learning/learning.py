@@ -131,6 +131,7 @@ class PostPre(LearningRule):
 
     def __init__(
         self,
+        error_range: float,
         connection: AbstractConnection,
         nu: Optional[Union[float, Sequence[float]]] = None,
         reduction: Optional[callable] = None,
@@ -149,10 +150,12 @@ class PostPre(LearningRule):
         super().__init__(
             connection=connection,
             nu=nu,
+            error_range=error_range,
             reduction=reduction,
             weight_decay=weight_decay,
             **kwargs
         )
+        self.error_range = error_range
         boolean_mask = []
         assert (
             self.source.traces and self.target.traces
@@ -166,6 +169,18 @@ class PostPre(LearningRule):
             raise NotImplementedError(
                 "This learning rule is not supported for this Connection type."
             )
+
+    def errorize(self, update):
+        if SharedPreference.get_error(SharedPreference):
+            shape = torch.Size((784, 1600))
+            x = torch.cuda.FloatTensor(shape)
+            error_rand = (-2) * torch.rand(shape, out=x) + 1
+            # ERROR
+            error_mask = error_rand * self.error_range
+            temp = self.connection.w
+            self.connection.w += self.nu[1] * update
+            self.connection.w += update * error_mask * (self.connection.w - temp)
+
 
     def _connection_update(self, **kwargs) -> None:
         # language=rst
@@ -195,14 +210,13 @@ class PostPre(LearningRule):
         #print(boolean_mask)
         if self.nu[0]:
             update = self.reduction(torch.bmm(source_s, target_x), dim=0)
-
             self.connection.w -= self.nu[0] * update *boolean_mask
 
         # Post-synaptic update.
         if self.nu[1]:
             update = self.reduction(torch.bmm(source_x, target_s), dim=0)
-
-            self.connection.w += self.nu[1] * update *boolean_mask
+            self.errorize(update)
+            #self.connection.w += self.nu[1] * update *boolean_mask *error_mask
 
         super().update()
 

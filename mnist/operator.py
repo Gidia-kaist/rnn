@@ -12,11 +12,13 @@ instance = SharedPreference.get_filter_mask(SharedPreference)
 print(instance)'''
 
 
-os.system("python3.6 batch_eth_mnist.py --connectivity 0.5 --prune 50")
-os.system("python3.6 batch_eth_mnist.py --connectivity 0.5 --prune 40")
-os.system("python3.6 batch_eth_mnist.py --connectivity 0.5 --prune 30")
-os.system("python3.6 batch_eth_mnist.py --connectivity 0.5 --prune 20")
-os.system("python3.6 batch_eth_mnist.py --connectivity 0.5 --prune 10")
+#os.system("python3.6 batch_eth_mnist.py --error_range 0.10")
+#os.system("python3.6 batch_eth_mnist.py --error_range 0.15")
+#os.system("python3.6 batch_eth_mnist.py --error_range 0.20")
+#os.system("python3.6 batch_eth_mnist.py --error_range 0.25")
+os.system("python3.6 batch_eth_mnist.py --error_range 0.30")
+os.system("python3.6 batch_eth_mnist.py --error_range 0.35")
+os.system("python3.6 batch_eth_mnist.py --error_range 0.40")
 # os.system("python3.6 batch_eth_mnist.py --connectivity 0.6 --prune 50")
 # os.system("python3.6 batch_eth_mnist.py --connectivity 0.6 --prune 50")
 

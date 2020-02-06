@@ -90,6 +90,7 @@ class DiehlAndCook2015(Network):
 
     def __init__(
         self,
+        error_range: float,
         n_inpt: int,
         n_neurons: int = 100,
         exc: float = 22.5,
@@ -181,6 +182,7 @@ class DiehlAndCook2015(Network):
             wmin=wmin,
             wmax=wmax,
             norm=norm,
+            error_range=error_range,
         )
 
 

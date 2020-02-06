@@ -5,6 +5,7 @@ class SharedPreference:
 
     # Default setting
     filter_mask = False
+    error_mask = False
     boolean_mask = torch.ones(784, 1600)
     boolean_mask = boolean_mask.cuda()
     def __init__(self):
@@ -34,3 +35,10 @@ class SharedPreference:
 
     def get_connection_w(self):
         return self.input_exc_conn.w
+
+    def set_error_on(self, boolean_inpt: bool):
+        self.error_mask = boolean_inpt
+        return self.error_mask
+
+    def get_error(self):
+        return self.error_mask

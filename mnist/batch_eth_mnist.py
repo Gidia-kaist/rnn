@@ -36,7 +36,7 @@ parser.add_argument("--update_steps", type=int, default=100)
 parser.add_argument("--exc", type=float, default=22.5)
 parser.add_argument("--inh", type=float, default=120)
 parser.add_argument("--theta_plus", type=float, default=0.05)
-parser.add_argument("--time", type=int, default=200)
+parser.add_argument("--time", type=int, default=500)
 parser.add_argument("--dt", type=int, default=1.0)
 parser.add_argument("--intensity", type=float, default=128)
 parser.add_argument("--progress_interval", type=int, default=10)
@@ -47,11 +47,14 @@ parser.add_argument("--nu_single", type=float, default=1e-3)
 parser.add_argument("--nu_pair", type=float, default=1e-2)
 parser.add_argument("--gpu", dest="gpu", action="store_true")
 parser.add_argument("--final_stage", type=int, default=300)
-parser.set_defaults(plot=True, gpu=True, train=True, sparse=False)
+parser.add_argument("--error_range", type=float, default=0.40)
+parser.set_defaults(plot=True, gpu=True, train=True, sparse=False, error=True)
+
 
 args = parser.parse_args()
 
 seed = args.seed
+error_range = args.error_range
 n_neurons = args.n_neurons
 batch_size = args.batch_size
 n_epochs = args.n_epochs
@@ -73,6 +76,7 @@ nu_pair = args.nu_pair
 sparse = args.sparse
 connectivity = args.connectivity
 prune = args.prune
+error = args.error
 final_stage_num = args.final_stage
 update_interval = update_steps * batch_size
 now = datetime.now()
@@ -99,6 +103,7 @@ start_intensity = intensity
 # Build network.
 network = DiehlAndCook2015(
     n_inpt=784,
+    error_range=error_range,
     n_neurons=n_neurons,
     exc=exc,
     inh=inh,
@@ -183,6 +188,8 @@ dfw = pd.DataFrame(k)
 dfw.to_csv('/home/gidia/anaconda3/envs/myspace/examples/mnist/outputs/weight[init]_'+ str(now.year) + '_' + str(
         now.month) + '_' + str(now.day) + '_' + str(now.hour) + '_' + str(now.minute) + '.csv', index=False)
 
+if error:
+    SharedPreference.set_error_on(SharedPreference, True)
 
 for epoch in range(n_epochs):
     labels = []

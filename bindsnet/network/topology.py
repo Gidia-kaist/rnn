@@ -6,7 +6,7 @@ import torch
 from torch.nn import Module, Parameter
 import torch.nn.functional as F
 from torch.nn.modules.utils import _pair
-
+from bindsnet.shared_preference import SharedPreference
 from .nodes import Nodes
 
 
@@ -198,19 +198,31 @@ class Connection(AbstractConnection):
         """
         super().update(**kwargs)
 
+    def errorize(self):
+        if SharedPreference.get_error(SharedPreference):
+            shape = torch.Size((784, 1600))
+            x = torch.cuda.FloatTensor(shape)
+            error_rand = (-2) * torch.rand(shape, out=x) + 1
+            # 5% ERROR
+            error_mask = 0.1 * error_rand * 0.05
+            self.w += error_mask
+
     def normalize(self) -> None:
         # language=rst
         """
         Normalize weights so each target neuron has sum of connection weights equal to
         ``self.norm``.
         """
-        
+
         if self.norm is not None:
             w_abs_sum = self.w.abs().sum(0).unsqueeze(0)
             w_abs_sum[w_abs_sum == 0] = 1.0
-            # print(w_abs_sum)
-            print(self.norm / w_abs_sum)
             self.w *= self.norm / w_abs_sum
+            #self.errorize()
+
+            #if SharedPreference.get_error():
+            #i = (-2) * torch.rand(3, 3) + 1
+            #print(self.w)
 
     def normalize_by_max(self) -> None:
         # language=rst
@@ -221,6 +233,7 @@ class Connection(AbstractConnection):
             w_max = self.w.abs().max(0)[0]
             w_max[w_max == 0] = 1.0
             self.w /= w_max
+
 
     def normalize_by_max_from_shadow_weights(self) -> None:
         # language=rst
